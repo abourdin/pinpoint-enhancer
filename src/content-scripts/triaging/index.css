@@ -1,0 +1,12 @@
+label {
+  display: block;
+}
+
+.row-commented {
+  background-color: #86caa5;
+}
+
+.shortcut-icon {
+  font-size: 1.3em;
+  margin-right: 8px;
+}
