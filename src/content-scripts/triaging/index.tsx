@@ -5,7 +5,6 @@ import { createRoot } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 import { cacheUsername } from './utils'
 import './index.css'
-import ScopedCssBaseline from '@mui/material/ScopedCssBaseline'
 
 const BASE_URL = window.location.origin
 const PATH_REGEX = /\/admin\/jobs\/(?<postingId>\d+)\/applications\/(?<applicationId>\d+)/m
@@ -74,12 +73,12 @@ async function processRow(row) {
   // @ts-ignore
   const { postingId, applicationId } = path.match(PATH_REGEX).groups
 
-  let actionsCell = $(row).find(`#actions-${applicationId}`)
+  let actionsCell = $(row).find(`.rt-td.OL-actions`)
   if (!actionsCell.length) {
-    actionsCell = $(`<div id='actions-${applicationId}' class='rt-td OL-actions' style='flex: 100 0 auto; width: 50px; max-width: 100px;' />`)
+    actionsCell = $(`<div class='rt-td OL-actions' style='flex: 100 0 auto; width: 50px; max-width: 100px;'></div>`)
     $(row).append(actionsCell)
   }
-  actionsCell.html('')
+  actionsCell.html(`<div id='actions-${applicationId}' />`)
 
   const applicationUrl = `${BASE_URL}${path}`
 
@@ -92,14 +91,6 @@ async function processRow(row) {
         <ApplicationDialog applicationId={applicationId} applicationUrl={applicationUrl} currentUserId={currentUserId} />
       </ErrorBoundary>,
     )
-
-  // const { commentsSection, commented } = renderComments(commentsResponse, scoreChanges, currentUserId)
-  // commentsSection.appendTo(commentsDialog)
-  // if (commented) {
-  //   $(row).addClass('row-commented')
-  // }
-  //
-  // renderNewCommentSection(commentsDialog, { applicationId, commentsSection, row })
 }
 
 (() => {

@@ -14,10 +14,8 @@ export function CommentSection({ applicationId, applicationData, currentUserId }
   const [rating, setRating] = useState<number>(1)
   const [comment, setComment] = useState<string>('')
   const [submitting, setSubmitting] = React.useState<boolean>(false)
-
-  if (!applicationData.commentsResponse) {
-    return null
-  }
+  const [comments, setComments] = React.useState<any[]>(applicationData.commentsResponse?.data)
+  const [scoreChanges, setScoreChanges] = React.useState<{ [key: string]: number }>(applicationData.scoreChanges || {})
 
   const handleSubmit = useCallback(async () => {
     setSubmitting(true)
@@ -26,18 +24,27 @@ export function CommentSection({ applicationId, applicationData, currentUserId }
       cacheUsernamesFromResponse(commentResponse)
       await postScore(applicationId, rating)
       setComment('')
+      setComments(comments => [...comments, commentResponse.data])
+      setScoreChanges(scoreChanges => ({
+        ...scoreChanges,
+        [currentUserId]: rating,
+      }))
     }
     catch (error) {
       console.error(error)
     }
     setSubmitting(false)
-  }, [rating])
+  }, [rating, comment, setComment, setComments, setScoreChanges, currentUserId])
+
+  if (!comments) {
+    return null
+  }
 
   return <Card variant='outlined'>
     <CardContent>
-      {applicationData.commentsResponse?.data.map((comment: any) => {
+      {comments.map((comment: any) => {
         const userId = comment.attributes.user_id
-        const score = applicationData.scoreChanges?.[userId]
+        const score = scoreChanges[userId]
         return (
           <>
             <b>{getUsername(userId)}</b> {score ? <>rated <Rating name='read-only' value={score} readOnly /></> : `commented`}:
@@ -69,11 +76,16 @@ export function CommentSection({ applicationId, applicationData, currentUserId }
               setComment(event.target.value)
             }}
             value={comment}
-            disabled={submitting || !rating || !comment}
+            disabled={submitting}
           />
         </div>
         <div>
-          <Button variant='contained' onClick={handleSubmit} loading={submitting}>Submit review</Button>
+          <Button variant='contained'
+                  onClick={handleSubmit}
+                  loading={submitting}
+                  disabled={!rating || !comment}>
+            Submit review
+          </Button>
         </div>
       </Stack>
     </CardContent>

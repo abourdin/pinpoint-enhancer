@@ -8,7 +8,6 @@ const dataCache: { [key: string]: ApplicationData } = {}
 
 export async function getApplicationData(applicationId: string): Promise<ApplicationData> {
   let cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse
-  console.log('dataCache[applicationId]=', dataCache[applicationId])
   if (dataCache[applicationId]) {
     ;({ cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse } = dataCache[applicationId] || {})
   }
