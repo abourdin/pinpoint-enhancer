@@ -8,6 +8,6 @@ export function triaging({}: ManifestContentConfig): ManifestContentScript {
       'https://*.pinpointhq.com/admin/jobs/*/stages/*/applications',
       'https://*.pinpointhq.com/admin/jobs/*/stages/*/applications/*',
     ],
-    run_at: 'document_start',
+    run_at: 'document_idle',
   }
 }

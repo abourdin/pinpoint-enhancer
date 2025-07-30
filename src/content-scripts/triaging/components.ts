@@ -1,4 +1,5 @@
-import { flagAsNotSuitable } from './API'
+import $ from 'jquery'
+import { flagAsNotSuitable, postComment, postScore } from './PinpointAPI'
 import { getUsername, cacheUsernamesFromResponse } from './utils'
 
 const dialogOptions = {
@@ -168,27 +169,6 @@ export function renderNewCommentSection(commentsDialog, { applicationId, comment
     submitButton.button('enable')
   })
   return newCommentSection
-}
-
-export function bindShortcutToDialog(shortcut, dialog) {
-  shortcut.on('click', (e) => {
-    e.stopPropagation()
-    $(dialog).dialog('open')
-  })
-}
-
-export function appendShortcuts(cell, { applicationId, applicationDialog, commentsDialog }) {
-  const applicationShortcut = $(`<a title='Application' id='icon-app-${applicationId}' class='shortcut-icon'>🧑‍💻</a>`)
-  const commentsShortcut = $(`<a title='Comments' id='icon-comments-${applicationId}' class='shortcut-icon'>⭐️</a>`)
-  const shortcuts = $('<div></div>').append(applicationShortcut).append(commentsShortcut)
-  $(cell).html(shortcuts)
-
-  bindShortcutToDialog(applicationShortcut, applicationDialog)
-  bindShortcutToDialog(commentsShortcut, commentsDialog)
-  return {
-    application: applicationShortcut,
-    comments: commentsShortcut,
-  }
 }
 
 function renderComment(comment, score) {

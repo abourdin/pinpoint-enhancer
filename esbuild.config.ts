@@ -1,9 +1,9 @@
-import { html } from '@esbuilder/html';
-import autoprefixer from 'autoprefixer';
-import { BuildOptions } from 'esbuild';
-import postcssImport from 'postcss-import';
+import { html } from '@esbuilder/html'
+import autoprefixer from 'autoprefixer'
+import { BuildOptions } from 'esbuild'
+import postcssImport from 'postcss-import'
 
-import { esbuildCssPlugin } from './scripts/utils';
+import { esbuildCssPlugin } from './scripts/utils'
 
 export function makeConfig(entryPoints: string[], outDir: string, isHtml?: boolean) {
   const config: BuildOptions = {
@@ -37,5 +37,5 @@ export function makeConfig(entryPoints: string[], outDir: string, isHtml?: boole
     )
   }
 
-  return config;
+  return config
 }
