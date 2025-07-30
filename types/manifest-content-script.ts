@@ -8,4 +8,5 @@ export type ManifestContentScript = {
   match_about_blank?: boolean;
   include_globs?: string[];
   exclude_globs?: string[];
+  world?: string | 'MAIN';
 };
