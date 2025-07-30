@@ -1,4 +1,6 @@
-chrome.tabs.onActivated.addListener(updateIcon)
+const browser = require('webextension-polyfill')
+
+browser.tabs.onActivated.addListener(updateIcon)
 
 async function updateIcon() {
   try {
@@ -8,10 +10,10 @@ async function updateIcon() {
     }
     const hostname = getHostname(tab.url)
     if (hostname.endsWith('pinpointhq.com')) {
-      chrome.action.setIcon({ path: '../public/icons/favicon-128.png' })
+      browser.action.setIcon({ path: '../public/icons/favicon-128.png' })
     }
     else {
-      chrome.action.setIcon({ path: '../public/icons/favicon-disabled-128.png' })
+      browser.action.setIcon({ path: '../public/icons/favicon-disabled-128.png' })
     }
   }
   catch (error) {
@@ -21,7 +23,7 @@ async function updateIcon() {
 
 async function getCurrentTab() {
   const queryOptions = { active: true, lastFocusedWindow: true }
-  const [tab] = await chrome.tabs.query(queryOptions)
+  const [tab] = await browser.tabs.query(queryOptions)
   return tab
 }
 

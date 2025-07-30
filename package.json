@@ -1,8 +1,8 @@
 {
-  "name": "painpoint",
-  "displayName": "Painpoint",
+  "name": "pinpoint-enhancer",
+  "displayName": "Pinpoint Enhancer",
   "version": "1.0.0",
-  "description": "Painpoint - Makes reviewing CVs in PinpointHQ slightly less of a pain",
+  "description": "Improves the experience of reviewing CVs in PinpointHQ",
   "license": "MIT",
   "scripts": {
     "start": "NODE_ENV=development ts-node-esm --experimental-specifier-resolution=node scripts/build --watch --runBrowser",
@@ -17,7 +17,8 @@
     "jquery": "3.7.1",
     "jquery-ui": "^1.14.1",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
     "@esbuilder/html": "^0.0.6",
@@ -30,6 +31,7 @@
     "@types/postcss-import": "^14.0.0",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
+    "@types/webextension-polyfill": "^0.12.3",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",
     "archiver": "^5.3.1",
