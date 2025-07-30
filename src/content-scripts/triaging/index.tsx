@@ -52,7 +52,7 @@ async function addFeatures() {
   const headRow = $('.ReactTable .rt-table .rt-thead .rt-tr')
   if (!headRow.hasClass('OL-header-enhanced')) {
     headRow.addClass('OL-header-enhanced')
-    headRow.append('<div class="rt-th" style="flex: 100 0 auto; width: 50px; max-width: 100px;">Actions</div>')
+    headRow.append('<div class="rt-th" style="flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;">Actions</div>')
   }
 
   await Promise.all(rows.toArray().map(processRow))
@@ -75,7 +75,7 @@ async function processRow(row) {
 
   let actionsCell = $(row).find(`.rt-td.OL-actions`)
   if (!actionsCell.length) {
-    actionsCell = $(`<div class='rt-td OL-actions' style='flex: 100 0 auto; width: 50px; max-width: 100px;'></div>`)
+    actionsCell = $(`<div class='rt-td OL-actions' style='flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;'></div>`)
     $(row).append(actionsCell)
   }
   actionsCell.html(`<div id='actions-${applicationId}' />`)

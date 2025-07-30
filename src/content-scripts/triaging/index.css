@@ -49,3 +49,6 @@ button.MuiButton-root {
   font-size: 0.8em;
 }
 
+.MuiBadge-badge {
+  font-size: 0.85em !important;
+}
