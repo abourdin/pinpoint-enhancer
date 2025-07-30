@@ -7,8 +7,16 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import { CircularProgress, Grid } from '@mui/material'
+import { Badge, badgeClasses, CircularProgress, Grid, IconButton, styled } from '@mui/material'
 import { ApplicationData } from '../types'
+import { AccountBox } from '@mui/icons-material'
+
+const CommentBadge = styled(Badge)`
+  & .${badgeClasses.badge} {
+    top: -12px;
+    right: -20px;
+  }
+`
 
 export function ApplicationDialog({
   applicationId, applicationUrl, currentUserId,
@@ -41,7 +49,10 @@ export function ApplicationDialog({
 
   return (
     <>
-      <a title='Application' className='shortcut-icon' onClick={handleClickOpen}>🧑‍💻</a>
+      <Button variant='contained' color='primary' onClick={handleClickOpen}>
+        <AccountBox />
+        <CommentBadge badgeContent={applicationData.commentsResponse?.data?.length} color='success' overlap='circular' />
+      </Button>
       <Dialog
         open={open}
         onClose={handleClose}
