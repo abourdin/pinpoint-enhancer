@@ -1,9 +1,29 @@
+import { ApplicationData } from '@src/content-scripts/triaging/components/ApplicationDialog'
+import { cacheUsernamesFromResponse } from '@src/content-scripts/triaging/utils'
+import $ from 'jquery'
+
 const BASE_URL = window.location.origin
 
-export async function getApplication(applicationId) {
-  return $.get(
-    `${BASE_URL}/admin/api/v1/applications/${applicationId}?filter[audits][visible_history]=true&fields[applications]=full_name,summary&fields[jobs]=title&extra_fields[answers]=document_file,documents_files&include=answers.answer_options,job.job_structured_sections.structured_section.structured_section_questions.question,structured_section_responses.structured_section_response_answers,candidate_survey.answers.answer_options,associated_audits.user&extra_fields[applications]=pdf_cv_file,tags&concealed=false`,
-  )
+const dataCache: { [key: string]: ApplicationData } = {}
+
+export async function getApplicationData(applicationId: string): Promise<ApplicationData> {
+  let cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse
+  console.log('dataCache[applicationId]=', dataCache[applicationId])
+  if (dataCache[applicationId]) {
+    ;({ cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse } = dataCache[applicationId] || {})
+  }
+  else {
+    const [response1, response2] = await Promise.all([$.get(
+      `${BASE_URL}/admin/api/v1/applications/${applicationId}?filter[audits][visible_history]=true&fields[applications]=full_name,summary&fields[jobs]=title&extra_fields[answers]=document_file,documents_files&include=answers.answer_options,job.job_structured_sections.structured_section.structured_section_questions.question,structured_section_responses.structured_section_response_answers,candidate_survey.answers.answer_options,associated_audits.user&extra_fields[applications]=pdf_cv_file,tags&concealed=false`,
+    ), getComments(applicationId)])
+    commentsResponse = response2
+    cacheUsernamesFromResponse(response1)
+    cacheUsernamesFromResponse(response2)
+
+    ;({ cvUrl, name, summary, answers, scoreChanges, tags } = extractApplicationData(response1))
+    dataCache[applicationId] = { cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse }
+  }
+  return { cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse }
 }
 
 export function extractApplicationData(applicationResponse: any) {
@@ -16,7 +36,9 @@ export function extractApplicationData(applicationResponse: any) {
     answer: answer.attributes.text_answer || answer.attributes.boolean_answer,
     type: answer.attributes.question_type,
   }))
-  const scoreChanges = applicationResponse.included.filter(entry => entry.type === 'audits' && entry.attributes.rating_score_changes != null).reduce((acc, scoreChange) => {
+  const scoreChanges: {
+    [key: string]: number;
+  } = applicationResponse.included.filter(entry => entry.type === 'audits' && entry.attributes.rating_score_changes != null).reduce((acc, scoreChange) => {
     acc[scoreChange.relationships.user.data.id] = scoreChange.attributes.rating_score_changes.to
     return acc
   }, {})

@@ -14,10 +14,13 @@
   },
   "type": "module",
   "dependencies": {
+    "@mui/material": "^7.2.0",
+    "@mui/styled-engine-sc": "^7.2.0",
     "jquery": "3.7.1",
-    "jquery-ui": "^1.14.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-error-boundary": "^6.0.0",
+    "styled-components": "^6.1.19",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
@@ -26,7 +29,6 @@
     "@types/chrome": "^0.0.240",
     "@types/fs-extra": "^11.0.1",
     "@types/jquery": "^3.5.32",
-    "@types/jqueryui": "^1.12.24",
     "@types/node": "^18.11.18",
     "@types/postcss-import": "^14.0.0",
     "@types/react": "^18.0.27",
