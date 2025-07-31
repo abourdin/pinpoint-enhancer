@@ -51,12 +51,14 @@ async function addFeatures() {
     return
   }
 
-  if (!headRow.classList.contains('OL-header-enhanced')) {
-    const headCell = document.createElement('div')
-    headCell.setAttribute('style', 'flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;')
-    headCell.textContent = 'Actions'
-    headRow.appendChild(headCell)
-    headRow.classList.add('OL-header-enhanced')
+  let actionsHeaderCell = headRow.querySelector('#actions-header')
+  if (!actionsHeaderCell) {
+    actionsHeaderCell = document.createElement('div')
+    actionsHeaderCell.classList.add('rt-th')
+    actionsHeaderCell.setAttribute('style', 'flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;')
+    actionsHeaderCell.setAttribute('id', 'actions-header')
+    actionsHeaderCell.textContent = 'Actions'
+    headRow.appendChild(actionsHeaderCell)
 
     document.querySelectorAll('.rt-th.-checkbox').forEach(item => item.addEventListener('click', triggerReload))
     document.querySelectorAll('.rt-th.-cursor-pointer').forEach(item => item.addEventListener('click', triggerReload))

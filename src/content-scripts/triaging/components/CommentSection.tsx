@@ -69,7 +69,7 @@ export function CommentSection({ applicationId, applicationData, currentUserId, 
         return (
           <>
             <b>{getUsername(userId)}</b> {score ? <>rated <Rating name='read-only' value={score} readOnly /></> : `commented`}:
-            {comment.attributes.body_json.map((entry, index) => <p key={`comment-${index}`}>{entry.children[0].text}</p>)}
+            {comment.attributes.body_json.map((entry: any, index: number) => <p key={`comment-${index}`}>{entry.children[0].text}</p>)}
           </>
         )
       })}
