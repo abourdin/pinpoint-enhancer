@@ -11,7 +11,7 @@ export function makeConfig(entryPoints: string[], outDir: string, isHtml?: boole
     outdir: outDir,
     bundle: true,
     sourcemap: false,
-    minify: false,
+    minify: true,
     target: ['chrome99', 'firefox102', 'safari16', 'edge113'],
     loader: {
       '.png': 'dataurl',
