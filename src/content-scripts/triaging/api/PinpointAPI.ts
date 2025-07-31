@@ -1,6 +1,5 @@
-import { ApplicationData } from '@src/content-scripts/triaging/components/ApplicationDialog'
 import { cacheUsernamesFromResponse } from '@src/content-scripts/triaging/utils'
-import $ from 'jquery'
+import { ApplicationData } from '../types'
 
 const BASE_URL = window.location.origin
 
@@ -12,9 +11,12 @@ export async function getApplicationData(applicationId: string): Promise<Applica
     ;({ cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse } = dataCache[applicationId] || {})
   }
   else {
-    const [response1, response2] = await Promise.all([$.get(
-      `${BASE_URL}/admin/api/v1/applications/${applicationId}?filter[audits][visible_history]=true&fields[applications]=full_name,summary&fields[jobs]=title&extra_fields[answers]=document_file,documents_files&include=answers.answer_options,job.job_structured_sections.structured_section.structured_section_questions.question,structured_section_responses.structured_section_response_answers,candidate_survey.answers.answer_options,associated_audits.user&extra_fields[applications]=pdf_cv_file,tags&concealed=false`,
-    ), getComments(applicationId)])
+    const applicationDetailsUrl = `${BASE_URL}/admin/api/v1/applications/${applicationId}?filter[audits][visible_history]=true&fields[applications]=full_name,summary&fields[jobs]=title&extra_fields[answers]=document_file,documents_files&include=answers.answer_options,job.job_structured_sections.structured_section.structured_section_questions.question,structured_section_responses.structured_section_response_answers,candidate_survey.answers.answer_options,associated_audits.user&extra_fields[applications]=pdf_cv_file,tags&concealed=false`
+
+    const [response1, response2] = await Promise.all([
+      fetchAndParse(applicationDetailsUrl),
+      getComments(applicationId),
+    ])
     commentsResponse = response2
     cacheUsernamesFromResponse(response1)
     cacheUsernamesFromResponse(response2)
@@ -44,13 +46,13 @@ export function extractApplicationData(applicationResponse: any) {
   return { name, cvUrl, summary, answers, scoreChanges, tags }
 }
 
-export async function getComments(applicationId) {
-  return $.get(
+export async function getComments(applicationId: string) {
+  return fetchAndParse(
     `${BASE_URL}/admin/api/v1/comments?filter[commentable_type]=Application&filter[commentable_id]=${applicationId}&sort=created_at&include=user,mentioned_users`,
   )
 }
 
-export async function postComment(applicationId, comment) {
+export async function postComment(applicationId: string, comment: string) {
   const payload = {
     data: {
       type: 'comments',
@@ -68,32 +70,35 @@ export async function postComment(applicationId, comment) {
       },
     },
   }
-  return $.ajax({
-    type: 'POST',
-    url: `${BASE_URL}/admin/api/v1/comments?include=user,mentioned_users`,
-    contentType: 'application/json; charset=utf-8',
-    data: JSON.stringify(payload),
-    dataType: 'json',
-  })
-}
-
-export async function postScore(applicationId, score) {
-  const csrfToken = document.querySelector('meta[name="csrf-token"]').content
-  const payload = {
-    rating: {
-      score,
+  return fetchAndParse(`${BASE_URL}/admin/api/v1/comments?include=user,mentioned_users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
     },
-    authenticity_token: csrfToken,
-  }
-  return $.ajax({
-    type: 'PATCH',
-    url: `${BASE_URL}/admin/applications/${applicationId}/rating`,
-    data: payload,
-    dataType: 'json',
+    body: JSON.stringify(payload),
   })
 }
 
-export async function flagAsNotSuitable(applicationId) {
+export async function postScore(applicationId: string, score: number) {
+  const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content
+  if (!csrfToken) {
+    throw new Error('CSRF token not found')
+  }
+
+  const formData = new URLSearchParams()
+  formData.append('rating[score]', score.toString())
+  formData.append('authenticity_token', csrfToken)
+
+  return fetchAndParse(`${BASE_URL}/admin/applications/${applicationId}/rating`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: formData,
+  })
+}
+
+export async function flagAsNotSuitable(applicationId: string) {
   const payload = {
     data: {
       type: 'applications',
@@ -106,11 +111,19 @@ export async function flagAsNotSuitable(applicationId) {
       },
     },
   }
-  return $.ajax({
-    type: 'PATCH',
-    url: `${BASE_URL}/admin/api/v1/applications/${applicationId}`,
-    contentType: 'application/json; charset=utf-8',
-    data: JSON.stringify(payload),
-    dataType: 'json',
+  return fetchAndParse(`${BASE_URL}/admin/api/v1/applications/${applicationId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    body: JSON.stringify(payload),
   })
+}
+
+async function fetchAndParse(url: string, options?: RequestInit) {
+  const response = await fetch(url, options)
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  return response.json()
 }

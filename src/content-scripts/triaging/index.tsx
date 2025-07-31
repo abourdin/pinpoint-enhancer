@@ -72,7 +72,6 @@ async function addFeatures() {
 
 async function processRow(row: Element, headRow: Element) {
   if (row.classList.contains('OL-row-enhanced')) {
-    console.log('row exit 1')
     return
   }
   else {
@@ -81,7 +80,6 @@ async function processRow(row: Element, headRow: Element) {
 
   const path = row.querySelector('a.bp3-link')?.getAttribute('href')
   if (!path) {
-    console.log('row exit 2')
     return
   }
   // @ts-ignore
