@@ -1,13 +1,14 @@
+import useAsync from '@common/hooks/useAsync'
+import { useCallback, useState } from 'react'
 import { CommentSection } from './CommentSection'
-import { getApplicationData } from '../api/PinpointAPI'
-import { useEffect } from 'react'
+import { flagAsNotSuitable, getApplicationData } from '../api/PinpointAPI'
 import * as React from 'react'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import { Badge, badgeClasses, CircularProgress, Grid, IconButton, styled } from '@mui/material'
+import { Alert, Badge, badgeClasses, CircularProgress, Grid, IconButton, styled } from '@mui/material'
 import { ApplicationData } from '../types'
 import { AccountBox } from '@mui/icons-material'
 
@@ -15,15 +16,25 @@ const CommentBadge = styled(Badge)`
   & .${badgeClasses.badge} {
     top: -12px;
     right: -20px;
+    font-size: 1.4em;
   }
 `
 
+type ApplicationDialogProps = {
+  applicationId: string
+  applicationUrl: string
+  currentUserId: string
+  rejectCallback: (tag: Tag) => void
+}
+
 export function ApplicationDialog({
-  applicationId, applicationUrl, currentUserId,
-}: { applicationId: string; applicationUrl: string; currentUserId: string }) {
-  const [loading, setLoading] = React.useState<boolean>(true)
-  const [open, setOpen] = React.useState(false)
-  const [applicationData, setApplicationData] = React.useState<ApplicationData>(undefined)
+  applicationId, applicationUrl, currentUserId, rejectCallback,
+}: ApplicationDialogProps) {
+  const [open, setOpen] = useState(false)
+
+  const { loading, error, data: applicationData } = useAsync<ApplicationData>(async () => {
+    return await getApplicationData(applicationId)
+  }, [applicationId])
 
   const handleClickOpen = () => {
     setOpen(true)
@@ -33,25 +44,22 @@ export function ApplicationDialog({
     setOpen(false)
   }
 
-  useEffect(() => {
-    async function fetchData() {
-      const applicationData = await getApplicationData(applicationId)
-      setApplicationData(applicationData)
-      setLoading(false)
-    }
-
-    fetchData()
-  }, [])
-
-  if (loading) {
+  if (loading || !applicationData) {
     return <CircularProgress size='24px' />
   }
 
+  if (error) {
+    return <Alert severity='error'>Error</Alert>
+  }
+
+  const commentsCount = applicationData.commentsResponse?.data?.length
+  const hasCommented = applicationData.commentsResponse?.data?.some((comment: any) => comment.attributes.user_id === currentUserId)
+
   return (
     <>
-      <Button variant='contained' color='primary' onClick={handleClickOpen}>
+      <Button variant='contained' color={hasCommented ? 'success' : 'primary'} onClick={handleClickOpen}>
         <AccountBox />
-        <CommentBadge badgeContent={applicationData.commentsResponse?.data?.length} color='success' overlap='circular' />
+        <CommentBadge badgeContent={commentsCount} color='success' overlap='circular' />
       </Button>
       <Dialog
         open={open}
@@ -78,7 +86,6 @@ export function ApplicationDialog({
                 <br />
                 {applicationData.summary || <i>No personal summary provided</i>}
               </p>
-              <br />
               {(applicationData.answers || []).map(answer => (
                 <p key={answer.title}>
                   <b>{answer.title}</b>
@@ -88,7 +95,8 @@ export function ApplicationDialog({
               ))}
             </Grid>
             <Grid size={5}>
-              <CommentSection applicationId={applicationId} applicationData={applicationData} currentUserId={currentUserId} />
+              <CommentSection applicationId={applicationId} applicationData={applicationData} currentUserId={currentUserId}
+                              rejectCallback={rejectCallback} />
             </Grid>
             <Grid size={12}>
               <div id='document-container'>

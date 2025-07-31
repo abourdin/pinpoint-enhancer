@@ -24,7 +24,6 @@ npm run build -- --browser=chrome,firefox
     |-- common : some common deps
         |-- assets
         |-- config
-        |-- jquery
         |-- ...
     |-- content-scripts : scripts and styles for run in context of web pages
         |-- triaging

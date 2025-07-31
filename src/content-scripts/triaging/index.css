@@ -45,10 +45,10 @@ label {
   font-size: 1.2em;
 }
 
-button.MuiButton-root {
-  font-size: 0.8em;
+.MuiChip-label {
+  font-size: 1.4em;
 }
 
-.MuiBadge-badge {
-  font-size: 0.85em !important;
+button.MuiButton-root {
+  font-size: 0.8em;
 }

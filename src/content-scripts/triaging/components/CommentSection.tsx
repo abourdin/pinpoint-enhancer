@@ -1,21 +1,26 @@
-import { Card, CardContent, Rating, Stack, TextField, Typography } from '@mui/material'
+import { Box, ButtonGroup, Card, CardContent, Chip, Rating, Stack, TextField, Typography } from '@mui/material'
 import Button from '@mui/material/Button'
+import { TagChip } from '@src/content-scripts/triaging/components/Tag'
 import * as React from 'react'
-import { postComment, postScore } from '../api/PinpointAPI'
+import { flagAsNotSuitable, postComment, postScore } from '../api/PinpointAPI'
 import { cacheUsernamesFromResponse, getUsername } from '@src/content-scripts/triaging/utils'
 import { useCallback, useState } from 'react'
-import { ApplicationData } from '../types'
+import { ApplicationData, Tag } from '../types'
 
-export function CommentSection({ applicationId, applicationData, currentUserId }: {
+type CommentSectionProps = {
   applicationId: string
-  applicationData: ApplicationData;
-  currentUserId: string;
-}) {
+  applicationData: ApplicationData
+  currentUserId: string
+  rejectCallback: (tag: Tag) => void
+}
+
+export function CommentSection({ applicationId, applicationData, currentUserId, rejectCallback }: CommentSectionProps) {
   const [rating, setRating] = useState<number>(1)
   const [comment, setComment] = useState<string>('')
   const [submitting, setSubmitting] = React.useState<boolean>(false)
   const [comments, setComments] = React.useState<any[]>(applicationData.commentsResponse?.data)
   const [scoreChanges, setScoreChanges] = React.useState<{ [key: string]: number }>(applicationData.scoreChanges || {})
+  const [rejectLoading, setRejectLoading] = useState(false)
 
   const handleSubmit = useCallback(async () => {
     setSubmitting(true)
@@ -36,12 +41,28 @@ export function CommentSection({ applicationId, applicationData, currentUserId }
     setSubmitting(false)
   }, [rating, comment, setComment, setComments, setScoreChanges, currentUserId])
 
+  const handleRejectClick = useCallback(() => {
+    async function reject() {
+      setRejectLoading(true)
+      await flagAsNotSuitable(applicationId)
+      setRejectLoading(false)
+      rejectCallback({ name: 'Not suitable for this position' })
+    }
+
+    reject()
+  }, [applicationId])
+
   if (!comments) {
     return null
   }
 
   return <Card variant='outlined'>
     <CardContent>
+      <Box sx={{ mb: 2 }}>
+        {applicationData.tags?.map(tag => (
+          <TagChip tag={tag} />
+        ))}
+      </Box>
       {comments.map((comment: any) => {
         const userId = comment.attributes.user_id
         const score = scoreChanges[userId]
@@ -83,9 +104,12 @@ export function CommentSection({ applicationId, applicationData, currentUserId }
           <Button variant='contained'
                   onClick={handleSubmit}
                   loading={submitting}
-                  disabled={!rating || !comment}>
+                  disabled={!rating || !comment}
+                  sx={{ mr: 2 }}>
             Submit review
           </Button>
+
+          <Button variant='contained' color='error' onClick={handleRejectClick} loading={rejectLoading}>Reject as not suitable</Button>
         </div>
       </Stack>
     </CardContent>
