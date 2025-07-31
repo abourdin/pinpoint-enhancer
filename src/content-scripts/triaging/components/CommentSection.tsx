@@ -63,6 +63,7 @@ export function CommentSection({ applicationId, applicationData, currentUserId, 
           <TagChip tag={tag} />
         ))}
       </Box>
+      {comments.length === 0 && <i>No comments yet</i>}
       {comments.map((comment: any) => {
         const userId = comment.attributes.user_id
         const score = scoreChanges[userId]
