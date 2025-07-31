@@ -1,6 +1,8 @@
-import $ from 'jquery'
+import { Alert, ScopedCssBaseline } from '@mui/material'
+import { TagChip } from '@src/content-scripts/triaging/components/Tag'
 import React from 'react'
-import { ApplicationDialog } from '@src/content-scripts/triaging/components/ApplicationDialog'
+import { Tag } from './types'
+import { ApplicationDialog } from './components/ApplicationDialog'
 import { createRoot } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 import { cacheUsername } from './utils'
@@ -14,7 +16,7 @@ let processing = false
 
 async function checkLoadingState() {
   if (!currentUserId && window?.intercomSettings) {
-    currentUserId = window.intercomSettings.user_id
+    currentUserId = window.intercomSettings.user_id?.toString()
     cacheUsername(currentUserId, window.intercomSettings.name)
   }
   if (processing) {
@@ -26,69 +28,95 @@ async function checkLoadingState() {
 }
 
 async function triggerReload() {
-  await sleep(100)
-  while ($('.ReactTable .-loading').hasClass('-active')) {
-    await sleep(100)
+  await sleep(200)
+  while (document.querySelector('.ReactTable .-loading')?.classList.contains('-active')) {
+    await sleep(200)
   }
-  $('.OL-row-enhanced').removeClass('OL-row-enhanced')
-  $('.row-commented').removeClass('row-commented')
+  document.querySelectorAll('.OL-row-enhanced').forEach(element => element.classList.remove('OL-row-enhanced'))
+  document.querySelectorAll('.row-commented').forEach(element => element.classList.remove('row-commented'))
 }
 
 async function addFeatures() {
-  if ($('.ReactTable .-loading').hasClass('-active')) {
+  if (document.querySelector('.ReactTable .-loading')?.classList.contains('-active')) {
     return
   }
 
-  const rows = $('.ReactTable .rt-table .rt-tbody .rt-tr') || []
-  if (!rows.length) {
+  const rows = document.querySelectorAll('.ReactTable .rt-table .rt-tbody .rt-tr')
+  if (!rows.length || !rows.values().some(row => !row.classList.contains('OL-row-enhanced'))) {
     return
   }
 
-  $('button[title="Previous"]').on('click', triggerReload)
-  $('button[title="Next"]').on('click', triggerReload)
-  $('.rt-th.-checkbox').on('click', triggerReload)
-  $('.rt-th.-cursor-pointer').on('click', triggerReload)
-
-  const headRow = $('.ReactTable .rt-table .rt-thead .rt-tr')
-  if (!headRow.hasClass('OL-header-enhanced')) {
-    headRow.addClass('OL-header-enhanced')
-    headRow.append('<div class="rt-th" style="flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;">Actions</div>')
+  const headRow = document.querySelector('.ReactTable .rt-table .rt-thead .rt-tr')
+  if (!headRow) {
+    return
   }
 
-  await Promise.all(rows.toArray().map(processRow))
+  if (!headRow.classList.contains('OL-header-enhanced')) {
+    const headCell = document.createElement('div')
+    headCell.setAttribute('style', 'flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;')
+    headCell.textContent = 'Actions'
+    headRow.appendChild(headCell)
+    headRow.classList.add('OL-header-enhanced')
+
+    document.querySelectorAll('.rt-th.-checkbox').forEach(item => item.addEventListener('click', triggerReload))
+    document.querySelectorAll('.rt-th.-cursor-pointer').forEach(item => item.addEventListener('click', triggerReload))
+  }
+
+  document.querySelector('button[title="Previous"]')?.addEventListener('click', triggerReload)
+  document.querySelector('button[title="Next"]')?.addEventListener('click', triggerReload)
+
+  await Promise.all(rows.values().map(row => processRow(row, headRow)))
 }
 
-async function processRow(row) {
-  if ($(row).hasClass('OL-row-enhanced')) {
+async function processRow(row: Element, headRow: Element) {
+  if (row.classList.contains('OL-row-enhanced')) {
+    console.log('row exit 1')
     return
   }
   else {
-    $(row).addClass('OL-row-enhanced')
+    row.classList.add('OL-row-enhanced')
   }
 
-  const path = $(row).find('a.bp3-link').attr('href')
+  const path = row.querySelector('a.bp3-link')?.getAttribute('href')
   if (!path) {
+    console.log('row exit 2')
     return
   }
   // @ts-ignore
   const { postingId, applicationId } = path.match(PATH_REGEX).groups
 
-  let actionsCell = $(row).find(`.rt-td.OL-actions`)
-  if (!actionsCell.length) {
-    actionsCell = $(`<div class='rt-td OL-actions' style='flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;'></div>`)
-    $(row).append(actionsCell)
+  let actionsCell = row.querySelector(`.rt-td.OL-actions`)
+  if (!actionsCell) {
+    actionsCell = document.createElement('div')
+    actionsCell.classList.add('rt-td', 'OL-actions')
+    actionsCell.setAttribute('style', 'flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;')
+    row.appendChild(actionsCell)
   }
-  actionsCell.html(`<div id='actions-${applicationId}' />`)
+  const actionsRoot = document.createElement('div')
+  actionsRoot.setAttribute('id', `actions-${applicationId}`)
+  actionsCell.appendChild(actionsRoot)
 
   const applicationUrl = `${BASE_URL}${path}`
 
-  const tagsColIndex = $('.ReactTable .rt-table .rt-thead .rt-tr .rt-th:contains("Tags")').index()
-  const tagsCell = $(row).find(`:nth-child(${tagsColIndex + 1})`)
+  const tagRowOnReject = (tag: Tag) => {
+    const tagHeaderCell = headRow.querySelectorAll('.rt-th')?.values().find(cell => cell.firstChild?.textContent?.includes('Tags'))
+    if (!tagHeaderCell) {
+      return
+    }
+    const columnIndex = getNodeIndex(tagHeaderCell)
+    const tagsCell = row.children[columnIndex]
+    const tagRoot = document.createElement('div')
+    tagsCell?.appendChild(tagRoot)
+    createRoot(tagRoot).render(<TagChip tag={tag} />)
+  }
 
   createRoot(document.querySelector(`#actions-${applicationId}`)!)
     .render(
-      <ErrorBoundary fallback={<div>Something went wrong</div>}>
-        <ApplicationDialog applicationId={applicationId} applicationUrl={applicationUrl} currentUserId={currentUserId} />
+      <ErrorBoundary fallback={<Alert severity='error'>Something went wrong</Alert>}>
+        <ScopedCssBaseline>
+          <ApplicationDialog applicationId={applicationId} applicationUrl={applicationUrl} currentUserId={currentUserId}
+                             rejectCallback={tagRowOnReject} />
+        </ScopedCssBaseline>
       </ErrorBoundary>,
     )
 }
@@ -98,13 +126,11 @@ async function processRow(row) {
     return
   }
 
-  $(document).ready(() => {
-    setInterval(function() {
-      checkLoadingState()
-    }, 300)
-  })
+  setInterval(checkLoadingState, 300)
 })()
 
-function sleep(ms) {
+function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
+
+const getNodeIndex = (element: Element) => [...(element.parentNode?.children || [])].indexOf(element)
