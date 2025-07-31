@@ -1,6 +1,6 @@
-import { Box, ButtonGroup, Card, CardContent, Chip, Rating, Stack, TextField, Typography } from '@mui/material'
+import { Box, Card, CardContent, Grid, Rating, Stack, TextField, Typography } from '@mui/material'
 import Button from '@mui/material/Button'
-import { TagChip } from '@src/content-scripts/triaging/components/Tag'
+import { TagChip } from '@src/content-scripts/triaging/components/TagChip'
 import * as React from 'react'
 import { flagAsNotSuitable, postComment, postScore } from '../api/PinpointAPI'
 import { cacheUsernamesFromResponse, getUsername } from '@src/content-scripts/triaging/utils'
@@ -100,7 +100,10 @@ export function CommentSection({ applicationId, applicationData, currentUserId, 
             disabled={submitting}
           />
         </div>
-        <div>
+        <Grid container
+              direction='row'
+              justifyContent='space-between'
+              alignItems='center'>
           <Button variant='contained'
                   onClick={handleSubmit}
                   loading={submitting}
@@ -108,9 +111,8 @@ export function CommentSection({ applicationId, applicationData, currentUserId, 
                   sx={{ mr: 2 }}>
             Submit review
           </Button>
-
           <Button variant='contained' color='error' onClick={handleRejectClick} loading={rejectLoading}>Reject as not suitable</Button>
-        </div>
+        </Grid>
       </Stack>
     </CardContent>
   </Card>
