@@ -14,43 +14,38 @@ const PATH_REGEX = /\/admin\/jobs\/(?<postingId>\d+)\/applications\/(?<applicati
 let currentUserId: string
 let processing = false
 
-async function checkLoadingState() {
-  if (!currentUserId && window?.intercomSettings) {
-    currentUserId = window.intercomSettings.user_id?.toString()
-    cacheUsername(currentUserId, window.intercomSettings.name)
-  }
+async function checkLoadingState(tableBody: Element) {
   if (processing) {
     return
   }
   processing = true
-  await addFeatures()
+  if (!currentUserId && window?.intercomSettings) {
+    currentUserId = window.intercomSettings.user_id?.toString()
+    cacheUsername(currentUserId, window.intercomSettings.name)
+  }
+
+  const observer = new MutationObserver(function(mutationsList: any) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'childList') {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const row = node.closest('.rt-tr')
+            if (row) {
+              processRow(row)
+            }
+          }
+        }
+      }
+    }
+  })
+  observer.observe(tableBody, { childList: true, subtree: true })
+
+  prepareTableHeader()
   processing = false
 }
 
-async function triggerReload() {
-  await sleep(200)
-  while (document.querySelector('.ReactTable .-loading')?.classList.contains('-active')) {
-    await sleep(200)
-  }
-  document.querySelectorAll('.ppe-row-enhanced').forEach(element => element.classList.remove('ppe-row-enhanced'))
-  document.querySelectorAll('.ppe-row-commented').forEach(element => element.classList.remove('ppe-row-commented'))
-}
-
-async function addFeatures() {
-  if (document.querySelector('.ReactTable .-loading')?.classList.contains('-active')) {
-    return
-  }
-
-  const rows = document.querySelectorAll('.ReactTable .rt-table .rt-tbody .rt-tr')
-  if (!rows.length || !rows.values().some(row => !row.classList.contains('ppe-row-enhanced'))) {
-    return
-  }
-
+function prepareTableHeader() {
   const headRow = document.querySelector('.ReactTable .rt-table .rt-thead .rt-tr')
-  if (!headRow) {
-    return
-  }
-
   let actionsHeaderCell = headRow.querySelector('#ppe-actions-header')
   if (!actionsHeaderCell) {
     actionsHeaderCell = document.createElement('div')
@@ -59,26 +54,37 @@ async function addFeatures() {
     actionsHeaderCell.setAttribute('id', 'ppe-actions-header')
     actionsHeaderCell.textContent = 'Actions'
     headRow.appendChild(actionsHeaderCell)
-
-    document.querySelectorAll('.rt-th.-checkbox').forEach(item => item.addEventListener('click', triggerReload))
-    document.querySelectorAll('.rt-th.-cursor-pointer').forEach(item => item.addEventListener('click', triggerReload))
   }
-
-  document.querySelector('button[title="Previous"]')?.addEventListener('click', triggerReload)
-  document.querySelector('button[title="Next"]')?.addEventListener('click', triggerReload)
-
-  await Promise.all(rows.values().map(row => processRow(row, headRow)))
 }
 
-async function processRow(row: Element, headRow: Element) {
+async function processRow(row: Element) {
+  const applicationLink = row.querySelector('a.bp3-link')
+  if (!applicationLink) {
+    return
+  }
+
   if (row.classList.contains('ppe-row-enhanced')) {
     return
   }
   else {
     row.classList.add('ppe-row-enhanced')
-  }
 
-  const path = row.querySelector('a.bp3-link')?.getAttribute('href')
+    if (applicationLink) {
+      const observer = new MutationObserver(function(mutationsList: any) {
+        for (const mutation of mutationsList) {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'href') {
+            row.classList.remove('ppe-row-enhanced')
+            observer.disconnect()
+            processRow(row)
+          }
+        }
+      })
+      observer.observe(applicationLink, { attributes: true })
+    }
+  }
+  const headRow = document.querySelector('.ReactTable .rt-table .rt-thead .rt-tr')
+
+  const path = applicationLink?.getAttribute('href')
   if (!path) {
     return
   }
@@ -94,7 +100,7 @@ async function processRow(row: Element, headRow: Element) {
   }
   const actionsRoot = document.createElement('div')
   actionsRoot.setAttribute('id', `ppe-actions-${applicationId}`)
-  actionsCell.appendChild(actionsRoot)
+  actionsCell.replaceChildren(actionsRoot)
 
   const applicationUrl = `${BASE_URL}${path}`
 
@@ -121,16 +127,48 @@ async function processRow(row: Element, headRow: Element) {
     )
 }
 
-(() => {
+(async () => {
+  console.log('Pinpoint Enhancer: init')
+
   if (!window.location.origin.endsWith('pinpointhq.com')) {
     return
   }
 
-  setInterval(checkLoadingState, 300)
+  const tableBody = document.querySelector('.ReactTable .rt-table .rt-tbody')
+  if (tableBody) {
+    console.log('table body: init on start')
+    await checkLoadingState(tableBody)
+  }
+  else {
+    const observer = new MutationObserver(function(mutationsList: any) {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node: Element) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              console.log(node.className)
+              if (node.classList.contains('rt-tbody')) {
+                console.log('table body: init on mutation')
+                observer.disconnect()
+                checkLoadingState(node)
+                return
+              }
+            }
+          })
+        }
+        else if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const node = mutation.target as Element
+          console.log(node.className)
+          if (node.classList.contains('rt-tbody')) {
+            console.log('table body: init on mutation')
+            observer.disconnect()
+            checkLoadingState(node)
+            return
+          }
+        }
+      }
+    })
+    observer.observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
+  }
 })()
-
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
 
 const getNodeIndex = (element: Element) => [...(element.parentNode?.children || [])].indexOf(element)

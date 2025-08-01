@@ -1,5 +1,5 @@
 import useAsync from '@common/hooks/useAsync'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { CommentSection } from './CommentSection'
 import { getApplicationData } from '../api/PinpointAPI'
 import * as React from 'react'
@@ -8,8 +8,8 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import { Alert, Badge, badgeClasses, CircularProgress, Grid, IconButton, styled } from '@mui/material'
-import { ApplicationData } from '../types'
+import { Alert, Badge, badgeClasses, CircularProgress, Grid, styled } from '@mui/material'
+import { ApplicationData, Tag } from '../types'
 import { AccountBox } from '@mui/icons-material'
 
 const CommentBadge = styled(Badge)`
@@ -31,10 +31,16 @@ export function ApplicationDialog({
   applicationId, applicationUrl, currentUserId, rejectCallback,
 }: ApplicationDialogProps) {
   const [open, setOpen] = useState(false)
+  const [applicationData, setApplicationData] = useState<ApplicationData>()
 
-  const { loading, error, data: applicationData } = useAsync<ApplicationData>(async () => {
-    return await getApplicationData(applicationId)
+  const { loading, error } = useAsync<ApplicationData>(async () => {
+    const data = await getApplicationData(applicationId)
+    setApplicationData(data)
   }, [applicationId])
+
+  const rejectCallbackWrapper = useCallback(async (tag: Tag) => {
+    await rejectCallback(tag)
+  }, [rejectCallback])
 
   const handleClickOpen = () => {
     setOpen(true)
