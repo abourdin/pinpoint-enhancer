@@ -15,7 +15,7 @@ type CommentSectionProps = {
 }
 
 export function CommentSection({ applicationId, applicationData, currentUserId, rejectCallback }: CommentSectionProps) {
-  const [rating, setRating] = useState<number>(1)
+  const [rating, setRating] = useState<number>(undefined)
   const [comment, setComment] = useState<string>('')
   const [submitting, setSubmitting] = React.useState<boolean>(false)
   const [comments, setComments] = React.useState<any[]>(applicationData.commentsResponse?.data)

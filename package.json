@@ -1,7 +1,7 @@
 {
   "name": "pinpoint-enhancer",
   "displayName": "Pinpoint Enhancer",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Improves the experience of reviewing CVs in PinpointHQ",
   "license": "MIT",
   "scripts": {

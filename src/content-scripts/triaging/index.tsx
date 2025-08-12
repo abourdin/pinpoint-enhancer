@@ -27,22 +27,8 @@ async function checkLoadingState() {
   processing = false
 }
 
-async function triggerReload() {
-  await sleep(200)
-  while (document.querySelector('.ReactTable .-loading')?.classList.contains('-active')) {
-    await sleep(200)
-  }
-  document.querySelectorAll('.ppe-row-enhanced').forEach(element => element.classList.remove('ppe-row-enhanced'))
-  document.querySelectorAll('.ppe-row-commented').forEach(element => element.classList.remove('ppe-row-commented'))
-}
-
 async function addFeatures() {
   if (document.querySelector('.ReactTable .-loading')?.classList.contains('-active')) {
-    return
-  }
-
-  const rows = document.querySelectorAll('.ReactTable .rt-table .rt-tbody .rt-tr')
-  if (!rows.length || !rows.values().some(row => !row.classList.contains('ppe-row-enhanced'))) {
     return
   }
 
@@ -50,40 +36,23 @@ async function addFeatures() {
   if (!headRow) {
     return
   }
+  enhanceHeaderRow(headRow)
 
-  let actionsHeaderCell = headRow.querySelector('#ppe-actions-header')
-  if (!actionsHeaderCell) {
-    actionsHeaderCell = document.createElement('div')
-    actionsHeaderCell.classList.add('rt-th')
-    actionsHeaderCell.setAttribute('style', 'flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;')
-    actionsHeaderCell.setAttribute('id', 'ppe-actions-header')
-    actionsHeaderCell.textContent = 'Actions'
-    headRow.appendChild(actionsHeaderCell)
-
-    document.querySelectorAll('.rt-th.-checkbox').forEach(item => item.addEventListener('click', triggerReload))
-    document.querySelectorAll('.rt-th.-cursor-pointer').forEach(item => item.addEventListener('click', triggerReload))
+  const rows = document.querySelectorAll('.ReactTable .rt-table .rt-tbody .rt-tr')
+  if (!rows.length || !rows.values().some(row => !isRowEnhanced(row))) {
+    return
   }
-
-  document.querySelector('button[title="Previous"]')?.addEventListener('click', triggerReload)
-  document.querySelector('button[title="Next"]')?.addEventListener('click', triggerReload)
 
   await Promise.all(rows.values().map(row => processRow(row, headRow)))
 }
 
 async function processRow(row: Element, headRow: Element) {
-  if (row.classList.contains('ppe-row-enhanced')) {
+  if (isRowEnhanced(row)) {
     return
-  }
-  else {
-    row.classList.add('ppe-row-enhanced')
   }
 
   const path = row.querySelector('a.bp3-link')?.getAttribute('href')
-  if (!path) {
-    return
-  }
-  // @ts-ignore
-  const { postingId, applicationId } = path.match(PATH_REGEX).groups
+  const applicationId = getRowApplicationId(row)
 
   let actionsCell = row.querySelector(`.rt-td.ppe-actions`)
   if (!actionsCell) {
@@ -94,6 +63,7 @@ async function processRow(row: Element, headRow: Element) {
   }
   const actionsRoot = document.createElement('div')
   actionsRoot.setAttribute('id', `ppe-actions-${applicationId}`)
+  actionsCell.innerHTML = ''
   actionsCell.appendChild(actionsRoot)
 
   const applicationUrl = `${BASE_URL}${path}`
@@ -121,6 +91,18 @@ async function processRow(row: Element, headRow: Element) {
     )
 }
 
+function enhanceHeaderRow(headRow: Element): void {
+  let actionsHeaderCell = headRow.querySelector('#ppe-actions-header')
+  if (!actionsHeaderCell) {
+    actionsHeaderCell = document.createElement('div')
+    actionsHeaderCell.classList.add('rt-th')
+    actionsHeaderCell.setAttribute('style', 'flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;')
+    actionsHeaderCell.setAttribute('id', 'ppe-actions-header')
+    actionsHeaderCell.textContent = 'Actions'
+    headRow.appendChild(actionsHeaderCell)
+  }
+}
+
 (() => {
   if (!window.location.origin.endsWith('pinpointhq.com')) {
     return
@@ -129,8 +111,23 @@ async function processRow(row: Element, headRow: Element) {
   setInterval(checkLoadingState, 300)
 })()
 
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+function isRowEnhanced(row: Element) {
+  const applicationId = getRowApplicationId(row)
+  if (!applicationId) {
+    return false
+  }
+  const actionCell = row.querySelector(`#ppe-actions-${applicationId}`)
+  return actionCell !== null
+}
+
+function getRowApplicationId(row: Element) {
+  const path = row.querySelector('a.bp3-link')?.getAttribute('href')
+  if (!path) {
+    return
+  }
+  // @ts-ignore
+  const { applicationId } = path.match(PATH_REGEX).groups
+  return applicationId
 }
 
 const getNodeIndex = (element: Element) => [...(element.parentNode?.children || [])].indexOf(element)
