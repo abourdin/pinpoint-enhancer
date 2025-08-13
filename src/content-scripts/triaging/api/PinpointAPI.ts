@@ -17,14 +17,14 @@ export async function getApplicationData(applicationId: string): Promise<Applica
       fetchAndParse(applicationDetailsUrl),
       getComments(applicationId),
     ])
-    commentsResponse = response2
+    commentsResponse = response2.data
     cacheUsernamesFromResponse(response1)
     cacheUsernamesFromResponse(response2)
 
     ;({ cvUrl, name, summary, answers, scoreChanges, tags } = extractApplicationData(response1))
-    dataCache[applicationId] = { cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse }
+    dataCache[applicationId] = { cvUrl, name, summary, answers, scoreChanges, tags, comments: commentsResponse }
   }
-  return { cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse }
+  return { cvUrl, name, summary, answers, scoreChanges, tags, comments: commentsResponse }
 }
 
 export function extractApplicationData(applicationResponse: any) {

@@ -1,5 +1,6 @@
 import { Alert, ScopedCssBaseline } from '@mui/material'
 import { TagChip } from '@src/content-scripts/triaging/components/TagChip'
+import { ApplicationContextProvider } from '@src/content-scripts/triaging/context/ApplicationContext'
 import React from 'react'
 import { Tag } from './types'
 import { ApplicationDialog } from './components/ApplicationDialog'
@@ -83,10 +84,14 @@ async function processRow(row: Element, headRow: Element) {
   createRoot(document.querySelector(`#ppe-actions-${applicationId}`)!)
     .render(
       <ErrorBoundary fallback={<Alert severity='error'>Something went wrong</Alert>}>
-        <ScopedCssBaseline>
-          <ApplicationDialog applicationId={applicationId} applicationUrl={applicationUrl} currentUserId={currentUserId}
-                             rejectCallback={tagRowOnReject} />
-        </ScopedCssBaseline>
+        <ApplicationContextProvider applicationId={applicationId}
+                                    applicationUrl={applicationUrl}
+                                    currentUserId={currentUserId}
+                                    rejectCallback={tagRowOnReject}>
+          <ScopedCssBaseline>
+            <ApplicationDialog />
+          </ScopedCssBaseline>
+        </ApplicationContextProvider>
       </ErrorBoundary>,
     )
 }

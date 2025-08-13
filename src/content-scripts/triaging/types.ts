@@ -18,5 +18,5 @@ export type ApplicationData = {
   tags: Tag[]
   applicationUrl?: string
   scoreChanges?: { [key: string]: number; }
-  commentsResponse: any
+  comments: any
 }

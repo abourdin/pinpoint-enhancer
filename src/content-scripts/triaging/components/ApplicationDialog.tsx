@@ -1,15 +1,13 @@
-import useAsync from '@common/hooks/useAsync'
+import { useApplicationContext } from '@src/content-scripts/triaging/context/ApplicationContext'
 import { useState } from 'react'
 import { CommentSection } from './CommentSection'
-import { getApplicationData } from '../api/PinpointAPI'
 import * as React from 'react'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import { Alert, Badge, badgeClasses, CircularProgress, Grid, IconButton, styled } from '@mui/material'
-import { ApplicationData } from '../types'
+import { Alert, Badge, badgeClasses, CircularProgress, Grid, styled } from '@mui/material'
 import { AccountBox } from '@mui/icons-material'
 
 const CommentBadge = styled(Badge)`
@@ -20,21 +18,9 @@ const CommentBadge = styled(Badge)`
   }
 `
 
-type ApplicationDialogProps = {
-  applicationId: string
-  applicationUrl: string
-  currentUserId: string
-  rejectCallback: (tag: Tag) => void
-}
-
-export function ApplicationDialog({
-  applicationId, applicationUrl, currentUserId, rejectCallback,
-}: ApplicationDialogProps) {
+export function ApplicationDialog() {
   const [open, setOpen] = useState(false)
-
-  const { loading, error, data: applicationData } = useAsync<ApplicationData>(async () => {
-    return await getApplicationData(applicationId)
-  }, [applicationId])
+  const { applicationUrl, currentUserId, loading, error, data } = useApplicationContext()
 
   const handleClickOpen = () => {
     setOpen(true)
@@ -44,7 +30,7 @@ export function ApplicationDialog({
     setOpen(false)
   }
 
-  if (loading || !applicationData) {
+  if (loading || !data) {
     return <CircularProgress size='24px' />
   }
 
@@ -52,8 +38,8 @@ export function ApplicationDialog({
     return <Alert severity='error'>Error</Alert>
   }
 
-  const commentsCount = applicationData.commentsResponse?.data?.length
-  const hasCommented = applicationData.commentsResponse?.data?.some((comment: any) => comment.attributes.user_id === currentUserId)
+  const commentsCount = data.comments?.length
+  const hasCommented = data.comments?.some((comment: any) => comment.attributes.user_id === currentUserId)
 
   return (
     <>
@@ -76,7 +62,7 @@ export function ApplicationDialog({
         }}
       >
         <DialogTitle sx={{ m: 0, p: 2 }} className='dialog-title'>
-          <b>Application - {applicationData.name}</b>
+          <b>Application - {data.name}</b>
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
@@ -84,9 +70,9 @@ export function ApplicationDialog({
               <p>
                 <b>Personal Summary</b>
                 <br />
-                {applicationData.summary || <i>No personal summary provided</i>}
+                {data.summary || <i>No personal summary provided</i>}
               </p>
-              {(applicationData.answers || []).map(answer => (
+              {(data.answers || []).map(answer => (
                 <p key={answer.title}>
                   <b>{answer.title}</b>
                   <br />
@@ -95,13 +81,12 @@ export function ApplicationDialog({
               ))}
             </Grid>
             <Grid size={5}>
-              <CommentSection applicationId={applicationId} applicationData={applicationData} currentUserId={currentUserId}
-                              rejectCallback={rejectCallback} />
+              <CommentSection />
             </Grid>
             <Grid size={12}>
               <div id='document-container'>
                 <div id='embed-border'></div>
-                <embed src={applicationData.cvUrl} width='100%' height='3000px' />
+                <embed src={data.cvUrl} width='100%' height='3000px' />
               </div>
             </Grid>
           </Grid>
@@ -112,7 +97,7 @@ export function ApplicationDialog({
                   onClick={() => window.open(applicationUrl, '_blank').focus()}>
             Open full application
           </Button>
-          <Button className='dialog-button' variant='contained' onClick={() => window.open(applicationData.cvUrl, '_blank').focus()}>
+          <Button className='dialog-button' variant='contained' onClick={() => window.open(data.cvUrl, '_blank').focus()}>
             Open CV in new tab
           </Button>
           <Button className='dialog-button' variant='contained' onClick={handleClose}>
