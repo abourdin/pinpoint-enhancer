@@ -19,7 +19,7 @@ export function buildManifestV2(
     version,
     description,
     icons: {
-      '128': '/public/icon-128.png',
+      '128': '/public/icons/icon-128.png',
     },
     permissions: [
       'activeTab',
