@@ -31,7 +31,7 @@ export function buildManifestV2(
     browser_action: {},
     browser_specific_settings: {
       gecko: {
-        id: 'addon@example.com',
+        id: 'pinpoint-enhancer',
       },
     },
   }
