@@ -69,7 +69,7 @@ async function processRow(row: Element, headRow: Element) {
 
   const applicationUrl = `${BASE_URL}${path}`
 
-  const tagRowOnReject = (tag: Tag) => {
+  const addTagOnRow = (tag: Tag) => {
     const tagHeaderCell = headRow.querySelectorAll('.rt-th')?.values().find(cell => cell.firstChild?.textContent?.includes('Tags'))
     if (!tagHeaderCell) {
       return
@@ -87,7 +87,7 @@ async function processRow(row: Element, headRow: Element) {
         <ApplicationContextProvider applicationId={applicationId}
                                     applicationUrl={applicationUrl}
                                     currentUserId={currentUserId}
-                                    rejectCallback={tagRowOnReject}>
+                                    addTag={addTagOnRow}>
           <ScopedCssBaseline>
             <ApplicationDialog />
           </ScopedCssBaseline>

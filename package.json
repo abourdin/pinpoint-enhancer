@@ -2,7 +2,7 @@
   "name": "pinpoint-enhancer",
   "displayName": "Pinpoint Enhancer",
   "version": "0.1.2",
-  "description": "Improves the experience of reviewing CVs in PinpointHQ",
+  "description": "Enhances the experience of reviewing CVs in PinpointHQ",
   "license": "MIT",
   "scripts": {
     "start": "NODE_ENV=development ts-node-esm --experimental-specifier-resolution=node scripts/build --watch --runBrowser",

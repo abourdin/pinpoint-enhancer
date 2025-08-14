@@ -8,6 +8,9 @@ export function OptionsPage(): JSX.Element {
     <>
       <h2>Options page</h2>
       <img src={logo} width={48} height={48} />
+      <p>
+        No configurable options are available yet :)
+      </p>
     </>
   )
 }

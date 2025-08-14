@@ -11,7 +11,7 @@ interface ApplicationContextType {
   updateData: (newValues: Partial<ApplicationData>) => void
   loading: boolean
   error: Error | undefined
-  rejectCallback: (tag: Tag) => void
+  addTag: (tag: Tag) => void
 }
 
 interface ApplicationContextProviderProps {
@@ -19,7 +19,7 @@ interface ApplicationContextProviderProps {
   applicationId: string
   applicationUrl: string
   currentUserId: string
-  rejectCallback: (tag: Tag) => void
+  addTag: (tag: Tag) => void
 }
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined)
@@ -29,7 +29,7 @@ export const ApplicationContextProvider: React.FC<ApplicationContextProviderProp
   applicationId,
   applicationUrl,
   currentUserId,
-  rejectCallback,
+  addTag,
 }) => {
   const [data, setData] = useState<ApplicationData>({} as ApplicationData)
 
@@ -48,8 +48,8 @@ export const ApplicationContextProvider: React.FC<ApplicationContextProviderProp
     }))
   }, [setData])
 
-  const rejectCallbackWrapper = (tag: Tag) => {
-    rejectCallback(tag)
+  const addTagWrapper = (tag: Tag) => {
+    addTag(tag)
     updateData({
       tags: [...data.tags, tag],
     })
@@ -57,7 +57,7 @@ export const ApplicationContextProvider: React.FC<ApplicationContextProviderProp
 
   return (
     <ApplicationContext.Provider
-      value={{ applicationId, applicationUrl, currentUserId, data, updateData, loading, error, rejectCallback: rejectCallbackWrapper }}>
+      value={{ applicationId, applicationUrl, currentUserId, data, updateData, loading, error, addTag: addTagWrapper }}>
       {children}
     </ApplicationContext.Provider>
   )

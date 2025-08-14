@@ -8,7 +8,7 @@ import { cacheUsernamesFromResponse, getUsername } from '@src/content-scripts/tr
 import { useCallback, useState } from 'react'
 
 export function CommentSection() {
-  const { data, updateData, applicationId, currentUserId, rejectCallback } = useApplicationContext()
+  const { data, updateData, applicationId, currentUserId, addTag } = useApplicationContext()
 
   const [rating, setRating] = useState<number>(0)
   const [comment, setComment] = useState<string>('')
@@ -44,7 +44,7 @@ export function CommentSection() {
       setRejectLoading(true)
       await flagAsNotSuitable(applicationId)
       setRejectLoading(false)
-      rejectCallback()
+      addTag({ name: 'Not suitable for this position' })
     }
 
     reject()
