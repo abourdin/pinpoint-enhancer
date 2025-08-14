@@ -1,4 +1,4 @@
-import { ManifestV3, ManifestConfig, ManifestContentScript } from '@types';
+import { ManifestV3, ManifestConfig, ManifestContentScript } from '@types'
 
 export function buildManifestV3(
   config: ManifestConfig,
@@ -10,8 +10,8 @@ export function buildManifestV3(
     background,
     version,
     description,
-    name
-  } = config;
+    name,
+  } = config
 
   const manifest: ManifestV3 = {
     manifest_version: 3,
@@ -22,7 +22,7 @@ export function buildManifestV3(
       '128': '/public/icons/favicon-128.png',
     },
     permissions: [
-      'storage',
+      // 'storage',
       'tabs',
     ],
     host_permissions: hostPermissions,
@@ -34,43 +34,43 @@ export function buildManifestV3(
     manifest.background = {
       service_worker: background,
       type: 'module',
-    };
+    }
   }
 
   if (pages.options) {
     manifest.options_ui = {
       page: pages.options,
-    };
+    }
   }
 
   if (pages.popup) {
     manifest.action = {
       default_popup: pages.popup,
       default_icon: manifest.icons?.['128'],
-    };
+    }
   }
 
   if (pages.newtab) {
     manifest.chrome_url_overrides = {
       newtab: pages.newtab,
-    };
+    }
   }
 
   if (pages.bookmarks) {
     manifest.chrome_url_overrides = {
       bookmarks: pages.bookmarks,
-    };
+    }
   }
 
   if (pages.history) {
     manifest.chrome_url_overrides = {
       history: pages.history,
-    };
+    }
   }
 
   if (pages.devtools) {
-    manifest.devtools_page = pages.devtools;
+    manifest.devtools_page = pages.devtools
   }
 
-  return manifest;
+  return manifest
 }

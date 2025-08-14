@@ -1,4 +1,4 @@
-import { ManifestV2, ManifestConfig, ManifestContentScript } from '@types';
+import { ManifestV2, ManifestConfig, ManifestContentScript } from '@types'
 
 export function buildManifestV2(
   config: ManifestConfig,
@@ -10,8 +10,8 @@ export function buildManifestV2(
     background,
     version,
     description,
-    name
-  } = config;
+    name,
+  } = config
 
   const manifest: ManifestV2 = {
     manifest_version: 2,
@@ -23,7 +23,7 @@ export function buildManifestV2(
     },
     permissions: [
       'activeTab',
-      'storage',
+      // 'storage',
       'tabs',
       ...hostPermissions,
     ],
@@ -32,32 +32,32 @@ export function buildManifestV2(
     browser_specific_settings: {
       gecko: {
         id: 'addon@example.com',
-      }
+      },
     },
-  };
+  }
 
   if (background) {
     manifest.background = {
       scripts: [background],
-    };
+    }
   }
 
   if (pages.options) {
     manifest.options_ui = {
       page: pages.options,
-    };
+    }
   }
 
   if (pages.popup) {
     manifest.browser_action = {
       default_popup: pages.popup,
       default_icon: manifest.icons?.['128'],
-    };
+    }
   }
 
   if (pages.devtools) {
-    manifest.devtools_page = pages.devtools;
+    manifest.devtools_page = pages.devtools
   }
 
-  return manifest;
+  return manifest
 }
