@@ -6,9 +6,9 @@ const BASE_URL = window.location.origin
 const dataCache: { [key: string]: ApplicationData } = {}
 
 export async function getApplicationData(applicationId: string): Promise<ApplicationData> {
-  let cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse
+  let cvUrl, name, summary, answers, scoreChanges, tags, comments
   if (dataCache[applicationId]) {
-    ;({ cvUrl, name, summary, answers, scoreChanges, tags, commentsResponse } = dataCache[applicationId] || {})
+    ;({ cvUrl, name, summary, answers, scoreChanges, tags, comments } = dataCache[applicationId] || {})
   }
   else {
     const applicationDetailsUrl = `${BASE_URL}/admin/api/v1/applications/${applicationId}?filter[audits][visible_history]=true&fields[applications]=full_name,summary&fields[jobs]=title&extra_fields[answers]=document_file,documents_files&include=answers.answer_options,job.job_structured_sections.structured_section.structured_section_questions.question,structured_section_responses.structured_section_response_answers,candidate_survey.answers.answer_options,associated_audits.user&extra_fields[applications]=pdf_cv_file,tags&concealed=false`
@@ -17,14 +17,14 @@ export async function getApplicationData(applicationId: string): Promise<Applica
       fetchAndParse(applicationDetailsUrl),
       getComments(applicationId),
     ])
-    commentsResponse = response2.data
+    comments = response2.data
     cacheUsernamesFromResponse(response1)
     cacheUsernamesFromResponse(response2)
 
     ;({ cvUrl, name, summary, answers, scoreChanges, tags } = extractApplicationData(response1))
-    dataCache[applicationId] = { cvUrl, name, summary, answers, scoreChanges, tags, comments: commentsResponse }
+    dataCache[applicationId] = { cvUrl, name, summary, answers, scoreChanges, tags, comments: comments }
   }
-  return { cvUrl, name, summary, answers, scoreChanges, tags, comments: commentsResponse }
+  return { cvUrl, name, summary, answers, scoreChanges, tags, comments: comments }
 }
 
 export function extractApplicationData(applicationResponse: any) {
