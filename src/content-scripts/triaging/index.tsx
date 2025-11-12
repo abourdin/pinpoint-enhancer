@@ -29,17 +29,17 @@ async function checkLoadingState() {
 }
 
 async function addFeatures() {
-  if (document.querySelector('.ReactTable .-loading')?.classList.contains('-active')) {
+  if (document.querySelector('.bp3-table-container .bp3-spinner') !== null) {
     return
   }
 
-  const headRow = document.querySelector('.ReactTable .rt-table .rt-thead .rt-tr')
+  const headRow = document.querySelector('.bp3-table thead tr')
   if (!headRow) {
     return
   }
   enhanceHeaderRow(headRow)
 
-  const rows = document.querySelectorAll('.ReactTable .rt-table .rt-tbody .rt-tr')
+  const rows = document.querySelectorAll('.bp3-table-container .bp3-table tbody tr')
   if (!rows.length || !rows.values().some(row => !isRowEnhanced(row))) {
     return
   }
@@ -55,10 +55,10 @@ async function processRow(row: Element, headRow: Element) {
   const path = row.querySelector('a.bp3-link')?.getAttribute('href')
   const applicationId = getRowApplicationId(row)
 
-  let actionsCell = row.querySelector(`.rt-td.ppe-actions`)
+  let actionsCell = row.querySelector(`td.ppe-actions`)
   if (!actionsCell) {
-    actionsCell = document.createElement('div')
-    actionsCell.classList.add('rt-td', 'ppe-actions')
+    actionsCell = document.createElement('td')
+    actionsCell.classList.add('ppe-actions')
     actionsCell.setAttribute('style', 'flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;')
     row.appendChild(actionsCell)
   }
@@ -99,8 +99,7 @@ async function processRow(row: Element, headRow: Element) {
 function enhanceHeaderRow(headRow: Element): void {
   let actionsHeaderCell = headRow.querySelector('#ppe-actions-header')
   if (!actionsHeaderCell) {
-    actionsHeaderCell = document.createElement('div')
-    actionsHeaderCell.classList.add('rt-th')
+    actionsHeaderCell = document.createElement('th')
     actionsHeaderCell.setAttribute('style', 'flex: 100 0 auto; width: 50px; max-width: 100px; text-align: center;')
     actionsHeaderCell.setAttribute('id', 'ppe-actions-header')
     actionsHeaderCell.textContent = 'Actions'

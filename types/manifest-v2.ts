@@ -1,5 +1,5 @@
-import { ManifestContentScript } from './manifest-content-script';
-import { ManifestBrowserSpecificSettings } from './manifest-browser-specific-settings';
+import { ManifestContentScript } from './manifest-content-script'
+import { ManifestBrowserSpecificSettings } from './manifest-browser-specific-settings'
 
 /**
  * rollup-plugin-chrome-extension
@@ -28,15 +28,15 @@ export interface ManifestV2 {
     theme_icons?: chrome.runtime.ManifestIcons[];
   };
   commands?: Record<string, {
-      suggested_key?: {
-        default?: string;
-        windows?: string;
-        mac?: string;
-        chromeos?: string;
-        linux?: string;
-      };
-      description?: string;
-    }>;
+    suggested_key?: {
+      default?: string;
+      windows?: string;
+      mac?: string;
+      chromeos?: string;
+      linux?: string;
+    };
+    description?: string;
+  }>;
   content_scripts?: ManifestContentScript[];
   content_security_policy?: string;
   devtools_page?: string;
@@ -97,11 +97,11 @@ export interface ManifestV2 {
     '3D'?: {
       features?: string[];
     };
-    plugins?:{
+    plugins?: {
       npapi?: boolean;
     };
   };
-  sandbox?:{
+  sandbox?: {
     pages: string[];
     content_security_policy?: string;
   };
