@@ -14,6 +14,7 @@ export function CommentSection() {
   const [comment, setComment] = useState<string>('')
   const [submitting, setSubmitting] = React.useState<boolean>(false)
   const [rejectLoading, setRejectLoading] = useState(false)
+  const [rejected, setRejected] = useState(false)
 
   const comments = data.comments || []
   const scoreChanges = data.scoreChanges || {}
@@ -42,9 +43,14 @@ export function CommentSection() {
   const handleRejectClick = useCallback(() => {
     async function reject() {
       setRejectLoading(true)
-      await flagAsNotSuitable(applicationId)
-      setRejectLoading(false)
-      addTag({ name: 'Not suitable for this position' })
+      try {
+        await flagAsNotSuitable(applicationId)
+        setRejected(true)
+        addTag({ name: 'Not suitable for this position' })
+      }
+      finally {
+        setRejectLoading(false)
+      }
     }
 
     reject()
@@ -110,7 +116,8 @@ export function CommentSection() {
                   sx={{ mr: 2 }}>
             Submit review
           </Button>
-          <Button variant='contained' color='error' onClick={handleRejectClick} loading={rejectLoading}>Reject as not suitable</Button>
+          <Button variant='contained' color='error' onClick={handleRejectClick} loading={rejectLoading} disabled={rejected}>
+            {rejected ? 'Application rejected' : 'Reject as not suitable'}</Button>
         </Grid>
       </Stack>
     </CardContent>
